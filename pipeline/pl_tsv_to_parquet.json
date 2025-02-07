@@ -14,7 +14,7 @@
 					}
 				],
 				"policy": {
-					"timeout": "0.00:12:00",
+					"timeout": "0.00:30:00",
 					"retry": 1,
 					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
@@ -24,6 +24,22 @@
 				"typeProperties": {
 					"source": {
 						"type": "ParquetSource",
+						"additionalColumns": [
+							{
+								"name": "di_job_id",
+								"value": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "di_load_dt",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						],
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": false,
@@ -44,7 +60,8 @@
 						"linkedServiceName": {
 							"referenceName": "AzureBlobStorage1_LS",
 							"type": "LinkedServiceReference"
-						}
+						},
+						"path": "gold"
 					}
 				},
 				"inputs": [
@@ -59,7 +76,11 @@
 				"outputs": [
 					{
 						"referenceName": "SnowflakeTable1",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "TEMP_SCHEMA",
+							"table": "PET_LICENSE_STAGE"
+						}
 					}
 				]
 			},
@@ -68,8 +89,8 @@
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
+					"timeout": "0:30:00",
+					"retry": 1,
 					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
 					"secureInput": false
@@ -97,6 +118,7 @@
 						}
 					},
 					"enableStaging": false,
+					"validateDataConsistency": false,
 					"translator": {
 						"type": "TabularTranslator",
 						"typeConversion": true,
