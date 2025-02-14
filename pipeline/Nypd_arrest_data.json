@@ -48,7 +48,14 @@
 							"type": "SnowflakeImportCopyCommand"
 						}
 					},
-					"enableStaging": false
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1_LS",
+							"type": "LinkedServiceReference"
+						},
+						"path": "gold"
+					}
 				},
 				"inputs": [
 					{
