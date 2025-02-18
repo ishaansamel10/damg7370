@@ -45,7 +45,6 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     limit: 100,",
 				"     ignoreNoFilesFound: false) ~> readTSVfile",
 				"readTSVfile derive(Lic_Issue_Date = toDate(License_Issue_Date,'MMMM dd yyyy'),",
 				"          SecondaryBreed = iifNull(Secondary_Breed,'Unknown'),",
