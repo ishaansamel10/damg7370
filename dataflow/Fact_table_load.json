@@ -1,0 +1,77 @@
+{
+	"name": "Fact_table_load",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "PetLicenseStageLoad",
+						"type": "DatasetReference"
+					},
+					"name": "StageTableSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "BreedDimSourceLoad",
+						"type": "DatasetReference"
+					},
+					"name": "BreedDimSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "LocationDimSourceLoad",
+						"type": "DatasetReference"
+					},
+					"name": "LocationDimSource"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          LICENSE_ISSUE_DATE as date,",
+				"          LICENSE_NUMBER as string,",
+				"          ANIMAL_NAME as string,",
+				"          SPECIES as string,",
+				"          PRIMARY_BREED as string,",
+				"          SECONDARY_BREED as string,",
+				"          ZIP_CODE as string,",
+				"          DI_JOB_ID as string,",
+				"          DI_LOAD_DATE as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> StageTableSource",
+				"source(output(",
+				"          BREED_SK as string,",
+				"          BREED_NK as string,",
+				"          START_DT as string,",
+				"          END_DT as string,",
+				"          IS_CURRENT as string,",
+				"          BREED_DK as string,",
+				"          SPECIES_NAME as string,",
+				"          PRIMARY_BREED_NAME as string,",
+				"          SECONDARY_BREED_NAME as string,",
+				"          DI_JOB_ID as string,",
+				"          DI_LOAD_DATE as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> BreedDimSource",
+				"source(output(",
+				"          LOCATION_SK as string,",
+				"          CITY as string,",
+				"          STATE as string,",
+				"          STATE_ABBR as string,",
+				"          ZIP_CODE as string,",
+				"          DI_JOB_ID as string,",
+				"          DI_LOAD_DATE as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> LocationDimSource"
+			]
+		}
+	}
+}
