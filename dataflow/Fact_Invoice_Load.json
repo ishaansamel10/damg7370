@@ -17,10 +17,61 @@
 						"type": "DatasetReference"
 					},
 					"name": "CustomerDim"
+				},
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable16",
+						"type": "DatasetReference"
+					},
+					"name": "MaxInvoiceSK"
+				},
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable18",
+						"type": "DatasetReference"
+					},
+					"name": "InvoiceParkStage"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable17",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable19",
+						"type": "DatasetReference"
+					},
+					"name": "LoadIntoPark"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "surrogateKey1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "MergeFromPark"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          INVOICEID as decimal(38,0),",
@@ -46,7 +97,124 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'table') ~> CustomerDim"
+				"     format: 'table') ~> CustomerDim",
+				"source(output(",
+				"          {NVL(MAX(INVOICE_SK),0)} as decimal(38,0)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: 'SELECT NVL(MAX(INVOICE_SK),0) FROM DAMG_NYPD_SCHEMA.FCT_INVOICE',",
+				"     format: 'query') ~> MaxInvoiceSK",
+				"source(output(",
+				"          INVOICEID as decimal(38,0),",
+				"          CUSTOMERID as decimal(38,0),",
+				"          INVOICEDATE as date,",
+				"          SHIPTO as string,",
+				"          SHIPTO_CITY as string,",
+				"          SHIPTO_COUNTRY as string,",
+				"          SALESPERSONID as decimal(38,0),",
+				"          SALESPERSONNAME as string,",
+				"          TOTAL_PRODUCT_CNT as decimal(38,0),",
+				"          TOTAL as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> InvoiceParkStage",
+				"MergeFromPark, CustomerDim join(CUSTOMERID == CUSTOMER_ID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 split(isNull(CUSTOMER_ID),",
+				"     disjoint: false) ~> split1@(CustomerIdNotFound, CustomerIDFound)",
+				"split1@CustomerIDFound keyGenerate(output(row_num as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"surrogateKey1 select(mapColumn(",
+				"          INVOICEID,",
+				"          CUSTOMERID,",
+				"          INVOICEDATE,",
+				"          TOTAL_PRODUCT_CNT,",
+				"          TOTAL,",
+				"          CUSTOMER_SK,",
+				"          PID,",
+				"          row_num,",
+				"          DI_CREATEDDT",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"join2 derive(INVOICE_SK = row_num + {NVL(MAX(INVOICE_SK),0)}) ~> derivedColumn1",
+				"select1, MaxInvoiceSK join(1==1,",
+				"     joinType:'cross',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"InvoiceStage, InvoiceParkStage union(byName: true)~> MergeFromPark",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          INVOICE_SK as decimal(38,0),",
+				"          INVOICE_ID as decimal(38,0),",
+				"          CUSTOMER_SK as decimal(38,0),",
+				"          INVOICE_DT as date,",
+				"          TOTAL_PRODUCT_CNT as decimal(38,0),",
+				"          TOTAL_PRODUCT_COST as double,",
+				"          DI_CREATEDDT as timestamp,",
+				"          PID as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          INVOICE_SK,",
+				"          INVOICE_ID = INVOICEID,",
+				"          CUSTOMER_SK,",
+				"          INVOICE_DT = INVOICEDATE,",
+				"          TOTAL_PRODUCT_CNT,",
+				"          TOTAL_PRODUCT_COST = TOTAL,",
+				"          DI_CREATEDDT,",
+				"          PID",
+				"     )) ~> sink1",
+				"split1@CustomerIdNotFound sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          INVOICEID as decimal(38,0),",
+				"          CUSTOMERID as decimal(38,0),",
+				"          INVOICEDATE as date,",
+				"          SHIPTO as string,",
+				"          SHIPTO_CITY as string,",
+				"          SHIPTO_COUNTRY as string,",
+				"          SALESPERSONID as decimal(38,0),",
+				"          SALESPERSONNAME as string,",
+				"          TOTAL_PRODUCT_CNT as decimal(38,0),",
+				"          TOTAL as decimal(10,2)",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          INVOICEID,",
+				"          CUSTOMERID,",
+				"          INVOICEDATE,",
+				"          SHIPTO,",
+				"          SHIPTO_CITY,",
+				"          SHIPTO_COUNTRY,",
+				"          SALESPERSONID,",
+				"          SALESPERSONNAME,",
+				"          TOTAL_PRODUCT_CNT,",
+				"          TOTAL",
+				"     )) ~> LoadIntoPark"
 			]
 		}
 	}
