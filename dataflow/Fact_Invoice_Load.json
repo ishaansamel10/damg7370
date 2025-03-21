@@ -1,0 +1,53 @@
+{
+	"name": "Fact_Invoice_Load",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable14",
+						"type": "DatasetReference"
+					},
+					"name": "InvoiceStage"
+				},
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable15",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerDim"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          INVOICEID as decimal(38,0),",
+				"          CUSTOMERID as decimal(38,0),",
+				"          INVOICEDATE as date,",
+				"          SHIPTO as string,",
+				"          SHIPTO_CITY as string,",
+				"          SHIPTO_COUNTRY as string,",
+				"          SALESPERSONID as decimal(38,0),",
+				"          SALESPERSONNAME as string,",
+				"          TOTAL_PRODUCT_CNT as decimal(38,0),",
+				"          TOTAL as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> InvoiceStage",
+				"source(output(",
+				"          CUSTOMER_SK as decimal(38,0),",
+				"          CUSTOMER_ID as decimal(38,0),",
+				"          CUSTOMER_NAME as string,",
+				"          DI_CREATEDDT as timestamp,",
+				"          PID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> CustomerDim"
+			]
+		}
+	}
+}
