@@ -1,0 +1,31 @@
+{
+	"name": "SnowflakeTable9",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Snowflake2_NYPD",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SnowflakeV2Table",
+		"schema": [
+			{
+				"name": "CUSTOMERID",
+				"type": "NUMBER",
+				"precision": 38,
+				"scale": 0
+			},
+			{
+				"name": "CUSTOMERNAME",
+				"type": "VARCHAR"
+			},
+			{
+				"name": "BILLTO",
+				"type": "VARCHAR"
+			}
+		],
+		"typeProperties": {
+			"schema": "DAMG_NYPD_SCHEMA",
+			"table": "CUSTOMER_STAGE"
+		}
+	}
+}

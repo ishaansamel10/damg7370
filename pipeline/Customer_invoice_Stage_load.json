@@ -1,0 +1,254 @@
+{
+	"name": "Customer_invoice_Stage_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Customer1_Stage",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SnowflakeV2Sink",
+						"importSettings": {
+							"type": "SnowflakeImportCopyCommand"
+						}
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1_LS",
+							"type": "LinkedServiceReference"
+						},
+						"path": "gold"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "customerid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CUSTOMERID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CUSTOMERNAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "billTo",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BILLTO",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText6",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SnowflakeTable9",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Fact Invoic Stage Load",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SnowflakeV2Sink",
+						"importSettings": {
+							"type": "SnowflakeImportCopyCommand"
+						}
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1_LS",
+							"type": "LinkedServiceReference"
+						},
+						"path": "gold"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "invoiceId",
+									"type": "String"
+								},
+								"sink": {
+									"name": "INVOICEID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "customerid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CUSTOMERID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "invoiceDate",
+									"type": "String"
+								},
+								"sink": {
+									"name": "INVOICEDATE",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ShipTo",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SHIPTO",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ShipTo_City",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SHIPTO_CITY",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ShipTo_Country",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SHIPTO_COUNTRY",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SalespersonPersonID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SALESPERSONID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "SalespersonName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SALESPERSONNAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "total_product_cnt",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TOTAL_PRODUCT_CNT",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "Total",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TOTAL",
+									"type": "Int64"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText7",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SnowflakeTable10",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}

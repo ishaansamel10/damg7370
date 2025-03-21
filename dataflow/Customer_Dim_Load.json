@@ -1,0 +1,52 @@
+{
+	"name": "Customer_Dim_Load",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable11",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerPart1Load"
+				},
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable12",
+						"type": "DatasetReference"
+					},
+					"name": "MaxSK"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "join1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CUSTOMERID as decimal(38,0),",
+				"          CUSTOMERNAME as string,",
+				"          BILLTO as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> CustomerPart1Load",
+				"source(output(",
+				"          MAX_CUSTOMER_SK as decimal(38,0)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: 'SELECT NVL(MAX(CUSTOMER_SK), 0) AS MAX_CUSTOMER_SK \\nFROM DAMG_NYPD_SCHEMA.DIM_CUSTOMER\\n',",
+				"     format: 'query') ~> MaxSK",
+				"CustomerPart1Load, MaxSK join(1==1,",
+				"     joinType:'cross',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1"
+			]
+		}
+	}
+}
